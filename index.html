@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cricket Scores</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Live cricket scores and fixtures for international cricket and the major T20 leagues, in GMT or IST, in English, Hindi, Bengali and Marathi.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600&family=Hind:wght@400;500;600&family=Hind+Siliguri:wght@400;500;600&display=swap">
+<style>
+/* Layout: plain masthead finished with a stitched "ball seam" rule; one centred column of match cards grouped by competition; scores set tall in a condensed face like a ground scoreboard.
+   Themes: Light (paper white), Neutral (soft concrete grey), Dark (night match). Auto follows the device. Classes th-light / th-neutral / th-dark on <html> force a theme. */
+:root{
+  --bg:#F6F7F6; --surface:#FFFFFF; --raise:#F0F2F0; --fg:#171B19; --muted:#5E6762; --line:#DEE2DF;
+  --accent:#1E6B47; --accent-fg:#FFFFFF; --seam:#B42318; --live:#C2261C; --win:#1E6B47; --chip:#E8ECE9;
+  --f-display:"Teko","Hind Siliguri","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Hind","Hind Siliguri",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+:root.th-neutral{
+  --bg:#D9DCD8; --surface:#E7E9E6; --raise:#DFE2DE; --fg:#1F2421; --muted:#4F5853; --line:#C3C8C3;
+  --accent:#2A5E45; --accent-fg:#FFFFFF; --seam:#9E2A20; --live:#A82319; --win:#2A5E45; --chip:#CDD2CD;
+  color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]):not(.th-light):not(.th-neutral){
+  --bg:#0F1311; --surface:#171C19; --raise:#1D2320; --fg:#ECEFED; --muted:#9AA49E; --line:#2A322E;
+  --accent:#4FB585; --accent-fg:#0F1311; --seam:#E5574B; --live:#FF5F52; --win:#5CC795; --chip:#232A26;
+  color-scheme:dark}}
+:root[data-theme="dark"]:not(.th-light):not(.th-neutral),:root.th-dark{
+  --bg:#0F1311; --surface:#171C19; --raise:#1D2320; --fg:#ECEFED; --muted:#9AA49E; --line:#2A322E;
+  --accent:#4FB585; --accent-fg:#0F1311; --seam:#E5574B; --live:#FF5F52; --win:#5CC795; --chip:#232A26;
+  color-scheme:dark}
+:root.th-light{color-scheme:light}
+:root[lang="bn"]{--f-display:"Hind Siliguri","Teko",system-ui,sans-serif;--f-body:"Hind Siliguri","Hind",system-ui,sans-serif}
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.45;transition:background-color .2s}
+button,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.gut{max-width:860px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+/* Masthead */
+.mast{background:var(--surface);border-bottom:1px solid var(--line)}
+.mast .gut{padding-block:16px 14px;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 20px}
+.brand h1{margin:0;font-family:var(--f-display);font-weight:600;font-size:clamp(2.4rem,8vw,3.2rem);line-height:.8;letter-spacing:.01em;text-transform:uppercase}
+.brand p{margin:6px 0 0;color:var(--muted);font-size:.86rem}
+.seam{height:9px;background:
+  repeating-linear-gradient(90deg,var(--seam) 0 7px,transparent 7px 12px) 0 0/100% 2px no-repeat,
+  linear-gradient(var(--seam),var(--seam)) 0 4px/100% 1px no-repeat,
+  repeating-linear-gradient(90deg,var(--seam) 0 7px,transparent 7px 12px) 6px 7px/100% 2px no-repeat;opacity:.85}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;background:var(--raise);padding:2px}
+.seg button{background:transparent;border:0;border-radius:999px;padding:5px 11px;font-weight:600;font-size:.82rem;cursor:pointer;color:var(--muted);display:inline-flex;align-items:center;gap:4px;line-height:1.3}
+.seg button:hover{color:var(--fg)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
+.seg.icons button{padding:5px 8px}
+.seg svg{width:15px;height:15px;flex:none}
+.seg .tzoff{font-weight:400;opacity:.8;font-size:.72rem}
+
+/* Toolbar */
+main{padding-block:0 48px}
+.bar{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;margin:18px 0 6px}
+.daynav{display:flex;align-items:center;gap:6px;flex:1 1 300px;min-width:0}
+.navbtn{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-size:1.3rem;line-height:1;display:grid;place-items:center;flex:none}
+.navbtn:hover{border-color:var(--accent);color:var(--accent)}
+.navbtn:disabled{opacity:.4;cursor:default}
+.day{min-width:0;padding:0 6px}
+.day b{display:block;font-family:var(--f-display);font-size:1.7rem;font-weight:600;line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-top:3px}
+.day small{color:var(--muted);font-size:.8rem}
+.tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 12px;font-size:.82rem;font-weight:600;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.status{font-size:.78rem;color:var(--muted);display:flex;align-items:center;gap:6px}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.dot.ok{background:var(--win)}.dot.live{background:var(--live);animation:pulse 1.4s infinite}
+@keyframes pulse{50%{opacity:.3}}
+@media (prefers-reduced-motion:reduce){.dot.live,.livetag::before{animation:none}body{transition:none}}
+.note{margin:8px 0;padding:10px 12px;border-radius:8px;background:var(--chip);font-size:.86rem;color:var(--muted)}
+
+/* Competition groups + match cards */
+.comp-h{display:flex;align-items:baseline;gap:10px;margin:24px 0 8px}
+.comp-h h2{margin:0;font-size:.8rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);min-width:0}
+.comp-h::after{content:"";flex:1;height:1px;background:var(--line);align-self:center}
+.list{display:grid;gap:8px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.card.is-live{border-left:3px solid var(--live)}
+.cbtn{display:block;width:100%;background:none;border:0;padding:12px 14px 11px;text-align:left;cursor:pointer}
+.meta-top{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:.78rem;color:var(--muted);margin-bottom:6px}
+.fmt{display:inline-block;padding:0 7px;border-radius:4px;background:var(--chip);font-weight:600;color:var(--fg);margin-right:6px;font-size:.72rem;letter-spacing:.04em;line-height:1.6}
+.when{white-space:nowrap;font-variant-numeric:tabular-nums}
+.livetag{color:var(--live);font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.livetag::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--live);margin-right:6px;vertical-align:1px;animation:pulse 1.4s infinite}
+.side{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:10px;padding:3px 0}
+.flag{width:28px;height:28px;border-radius:50%;background:var(--chip);display:grid;place-items:center;overflow:hidden;font-size:.6rem;font-weight:600;color:var(--muted)}
+.flag img{width:100%;height:100%;object-fit:contain}
+.tname{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bat{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--seam);margin-left:7px;vertical-align:2px}
+.side.lost .tname,.side.lost .runs{color:var(--muted)}
+.score{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.runs{font-family:"Teko",var(--f-display);font-weight:600;font-size:1.55rem;line-height:1}
+.ov{font-size:.78rem;color:var(--muted);margin-left:5px}
+.yet{font-size:.8rem;color:var(--muted)}
+.summary{margin-top:6px;font-size:.86rem;color:var(--fg)}
+.summary.res{color:var(--win);font-weight:600}
+.detail{border-top:1px solid var(--line);padding:10px 14px 14px;font-size:.86rem;display:grid;gap:10px}
+.dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 14px;margin:0}
+.dl dt{color:var(--muted)}.dl dd{margin:0;min-width:0}
+.inns{display:flex;flex-wrap:wrap;gap:6px}
+.inns span{background:var(--raise);border:1px solid var(--line);border-radius:6px;padding:2px 8px;font-size:.8rem;font-variant-numeric:tabular-nums}
+.detail a{color:var(--accent);font-weight:600}
+.empty{padding:36px 16px;text-align:center;color:var(--muted);display:grid;gap:12px;justify-items:center}
+footer{margin-top:32px;font-size:.76rem;color:var(--muted)}
+@media (max-width:520px){.runs{font-size:1.35rem}.mast .gut{align-items:flex-start}.seg button{padding:5px 9px}}
+</style>
+</head>
+<body>
+
+<header class="mast">
+  <div class="gut">
+    <div class="brand">
+      <h1 id="sitename">Cricket</h1>
+      <p id="tagline"></p>
+    </div>
+    <div class="controls">
+      <div class="seg" role="group" id="langgrp">
+        <button type="button" data-lang="en" lang="en">EN</button>
+        <button type="button" data-lang="hi" lang="hi">हिन्दी</button>
+        <button type="button" data-lang="bn" lang="bn">বাংলা</button>
+        <button type="button" data-lang="mr" lang="mr">मराठी</button>
+      </div>
+      <div class="seg" role="group" id="tzgrp">
+        <button type="button" data-tz="GMT">GMT</button>
+        <button type="button" data-tz="IST">IST <span class="tzoff">+5:30</span></button>
+      </div>
+      <div class="seg icons" role="group" id="themegrp">
+        <button type="button" data-theme-opt="auto"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 1.8a6.2 6.2 0 0 1 0 12.4Z" fill="currentColor"/></svg></button>
+        <button type="button" data-theme-opt="light"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3" fill="currentColor"/><g stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8 1v1.7M8 13.3V15M1 8h1.7M13.3 8H15M3 3l1.2 1.2M11.8 11.8 13 13M3 13l1.2-1.2M11.8 4.2 13 3"/></g></svg></button>
+        <button type="button" data-theme-opt="neutral"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="currentColor" opacity=".45"/><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/></svg></button>
+        <button type="button" data-theme-opt="dark"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M10.6 1.3A6.8 6.8 0 1 0 14.7 11 5.5 5.5 0 0 1 10.6 1.3Z"/></svg></button>
+      </div>
+    </div>
+  </div>
+  <div class="seam" aria-hidden="true"></div>
+</header>
+
+<main class="gut">
+  <div class="bar">
+    <div class="daynav">
+      <button class="navbtn" id="prev" type="button">‹</button>
+      <div class="day"><b id="dayname">…</b><small id="daysub"></small></div>
+      <button class="navbtn" id="next" type="button">›</button>
+    </div>
+    <div class="tools">
+      <div class="seg" role="group" id="scopegrp">
+        <button type="button" data-scope="top"></button>
+        <button type="button" data-scope="all"></button>
+      </div>
+      <button class="btn" id="refresh" type="button"></button>
+      <span class="status"><span class="dot" id="dot"></span><span id="stxt"></span></span>
+    </div>
+  </div>
+  <div id="note" class="note" hidden></div>
+  <div id="matches"></div>
+  <footer id="foot"></footer>
+</main>
+
+<script>
+(function(){
+const API="https://site.api.espn.com/apis/site/v2/sports/cricket/scorepanel";
+const ZONES={GMT:{tz:"UTC",off:"UTC+0"},IST:{tz:"Asia/Kolkata",off:"UTC+5:30"}};
+const LOCALE={en:"en-GB",hi:"hi-IN-u-nu-latn",bn:"bn-IN-u-nu-latn",mr:"mr-IN-u-nu-latn"};
+
+// "Top" = internationals (Test/ODI/T20I, men's and women's) plus the major franchise leagues and ICC/ACC events
+const INTL_FMT=/^(Women'?s? )?(Test|ODI|T20I|Youth Test|Youth ODI)$/i;
+const MAJOR=/(Indian Premier League|\bIPL\b|Women'?s Premier League|\bWPL\b|Pakistan Super League|\bPSL\b|Bangladesh Premier League|\bBPL\b|International League T20|\bILT20\b|Lanka Premier League|\bLPL\b|Big Bash|Caribbean Premier League|\bCPL\b|\bSA20\b|The Hundred|Major League Cricket|\bMLC\b|Abu Dhabi T10|Asia Cup|\bICC\b|World Cup|Champions Trophy)/i;
+const NOT_TOP=/(\bA tour\b|\bA in\b| A team|Second Eleven|2nd XI|County Championship|Under-19 .*domestic)/i;
+
+const T={
+ en:{tag:"Live scores and fixtures · international cricket and the major leagues",top:"Top matches",all:"All cricket",refresh:"Refresh",
+   connecting:"Connecting…",updated:"Updated",live:"Live",preview:"Preview",today:"Today",match1:"match",matchN:"matches",
+   inTz:"Times in",nomatchTop:"No top matches on this day.",nomatchAll:"No matches on this day.",showAll:"Show all cricket",
+   starts:"Starts",venue:"Venue",inns:"Innings",scorecard:"Full scorecard on ESPN",yet:"Yet to bat",
+   lang:"Language",tzl:"Time zone",theme:"Theme",auto:"Auto",light:"Light",neutral:"Neutral",dark:"Dark",
+   prev:"Previous day",next:"Next day",err:"Couldn't load live scores. Check your connection and try again.",
+   snap:"You're viewing a preview with saved data from 15 October. On the live site, scores load and refresh automatically.",
+   foot:"Data: ESPN. Not an official ICC or league site. Match status text is shown as the data provider supplies it."},
+ hi:{tag:"लाइव स्कोर और मैच कार्यक्रम · अंतरराष्ट्रीय क्रिकेट और प्रमुख लीग",top:"प्रमुख मैच",all:"सभी क्रिकेट",refresh:"रीफ़्रेश",
+   connecting:"कनेक्ट हो रहा है…",updated:"अपडेट",live:"लाइव",preview:"पूर्वावलोकन",today:"आज",match1:"मैच",matchN:"मैच",
+   inTz:"समय",nomatchTop:"इस दिन कोई प्रमुख मैच नहीं है।",nomatchAll:"इस दिन कोई मैच नहीं है।",showAll:"सभी क्रिकेट दिखाएँ",
+   starts:"शुरुआत",venue:"स्थान",inns:"पारी",scorecard:"ESPN पर पूरा स्कोरकार्ड",yet:"बल्लेबाज़ी बाकी",
+   lang:"भाषा",tzl:"समय क्षेत्र",theme:"थीम",auto:"ऑटो",light:"हल्का",neutral:"तटस्थ",dark:"गहरा",
+   prev:"पिछला दिन",next:"अगला दिन",err:"लाइव स्कोर लोड नहीं हो सके। अपना कनेक्शन जाँचें और फिर से कोशिश करें।",
+   snap:"आप 15 अक्टूबर के सहेजे गए डेटा के साथ पूर्वावलोकन देख रहे हैं। लाइव साइट पर स्कोर अपने-आप लोड और अपडेट होते हैं।",
+   foot:"डेटा: ESPN. यह ICC या किसी लीग की आधिकारिक साइट नहीं है। मैच की स्थिति डेटा प्रदाता के अनुसार अंग्रेज़ी में दिखाई जाती है।"},
+ bn:{tag:"লাইভ স্কোর ও সূচি · আন্তর্জাতিক ক্রিকেট ও প্রধান লিগ",top:"প্রধান ম্যাচ",all:"সব ক্রিকেট",refresh:"রিফ্রেশ",
+   connecting:"সংযোগ হচ্ছে…",updated:"আপডেট",live:"লাইভ",preview:"প্রিভিউ",today:"আজ",match1:"ম্যাচ",matchN:"ম্যাচ",
+   inTz:"সময়",nomatchTop:"এই দিনে কোনো প্রধান ম্যাচ নেই।",nomatchAll:"এই দিনে কোনো ম্যাচ নেই।",showAll:"সব ক্রিকেট দেখুন",
+   starts:"শুরু",venue:"মাঠ",inns:"ইনিংস",scorecard:"ESPN-এ পূর্ণ স্কোরকার্ড",yet:"এখনও ব্যাট করেনি",
+   lang:"ভাষা",tzl:"সময় অঞ্চল",theme:"থিম",auto:"অটো",light:"হালকা",neutral:"নিরপেক্ষ",dark:"গাঢ়",
+   prev:"আগের দিন",next:"পরের দিন",err:"লাইভ স্কোর লোড করা যায়নি। সংযোগ পরীক্ষা করে আবার চেষ্টা করুন।",
+   snap:"আপনি ১৫ অক্টোবরের সংরক্ষিত ডেটা দিয়ে একটি প্রিভিউ দেখছেন। লাইভ সাইটে স্কোর নিজে থেকেই লোড ও আপডেট হয়।",
+   foot:"ডেটা: ESPN. এটি ICC বা কোনো লিগের অফিসিয়াল সাইট নয়। ম্যাচের অবস্থা ডেটা প্রদানকারীর দেওয়া ইংরেজিতে দেখানো হয়।"},
+ mr:{tag:"लाइव्ह स्कोअर आणि वेळापत्रक · आंतरराष्ट्रीय क्रिकेट आणि प्रमुख लीग",top:"प्रमुख सामने",all:"सर्व क्रिकेट",refresh:"रिफ्रेश",
+   connecting:"जोडत आहे…",updated:"अपडेट",live:"लाइव्ह",preview:"पूर्वावलोकन",today:"आज",match1:"सामना",matchN:"सामने",
+   inTz:"वेळ",nomatchTop:"या दिवशी कोणतेही प्रमुख सामने नाहीत.",nomatchAll:"या दिवशी कोणतेही सामने नाहीत.",showAll:"सर्व क्रिकेट दाखवा",
+   starts:"सुरुवात",venue:"मैदान",inns:"डाव",scorecard:"ESPN वर पूर्ण धावफलक",yet:"फलंदाजी बाकी",
+   lang:"भाषा",tzl:"वेळ क्षेत्र",theme:"थीम",auto:"ऑटो",light:"फिकट",neutral:"तटस्थ",dark:"गडद",
+   prev:"मागील दिवस",next:"पुढील दिवस",err:"लाइव्ह स्कोअर लोड झाले नाहीत. कनेक्शन तपासा आणि पुन्हा प्रयत्न करा.",
+   snap:"तुम्ही १५ ऑक्टोबरच्या जतन केलेल्या डेटासह पूर्वावलोकन पाहत आहात. लाइव्ह साइटवर स्कोअर आपोआप लोड आणि अपडेट होतात.",
+   foot:"डेटा: ESPN. ही ICC किंवा कोणत्याही लीगची अधिकृत साइट नाही. सामन्याची स्थिती डेटा पुरवठादाराकडून इंग्रजीत दाखवली जाते."}
+};
+
+// Saved sample (15 Oct) used only when the live feed can't be reached, e.g. inside a preview sandbox
+const SNAP_DATE="2026-10-15";
+function sev(id,league,date,state,summary,title,fmt,venue,city,a,b){
+  const comp=(c,ha)=>({homeAway:ha,winner:false,score:c[2],team:{id:c[3],displayName:c[0],abbreviation:c[1]},linescores:c[4]||[]});
+  return{id,date,_league:league,status:{summary,type:{state}},links:[{href:"https://www.espn.in/cricket/series/_/game/"+id}],
+    competitions:[{description:title,class:{generalClassCard:fmt},venue:{fullName:venue,address:{city}},competitors:[comp(a,"home"),comp(b,"away")]}]};
+}
+const SNAP=[
+ sev("1554418","ICC Men's Cricket World Cup League 2","2026-10-15T06:00Z","pre","Starts at 10:00 local time","136th Match","ODI","Al Amerat Cricket Ground (Ministry Turf 1)","Al Amarat",["Oman","OMA","",37],["Canada","CAN","",17]),
+ sev("1558244","ECA Women's European Cup 2026/27","2026-10-15T07:00Z","pre","Starts at 10:00 local time","1st Match","Women T20","Moara Vlasiei Cricket Ground","Ilfov County",["Austria Women","AUT-W","",1185211],["Sweden Women","SWE-W","",1275073]),
+ sev("1558245","ECA Women's European Cup 2026/27","2026-10-15T11:00Z","pre","Starts at 14:00 local time","2nd Match","Women T20","Moara Vlasiei Cricket Ground","Ilfov County",["Bulgaria Women","BUL-W","",1454933],["Sweden Women","SWE-W","",1275073]),
+ sev("1553799","President's Trophy","2026-10-12T05:00Z","in","State B of P won toss","23rd Match","First-class","Diamond Club Ground","Islamabad",
+   ["Markhor IT Solutions","MITS","376 & 98/3 (29 ov)",1553774,[{runs:376,wickets:10,overs:76.3,isBatting:true,description:"all out"},{runs:98,wickets:3,overs:29,isBatting:true,isCurrent:1}]],
+   ["State Bank of Pakistan","SBP","344",3110,[{runs:344,wickets:10,overs:97.3,isBatting:true,description:"all out"}]]),
+ sev("1553797","President's Trophy","2026-10-14T05:00Z","in","Ghani won toss","21st Match","First-class","Rana Naveed Cricket Academy","Sheikhupura",
+   ["Ghani","GHA","273/4",1413171,[{runs:273,wickets:4,overs:0,isBatting:true,isCurrent:1}]],["Hyderabad Kingsmen Academy","HHKA","",1549016]),
+ sev("1553800","President's Trophy","2026-10-14T05:00Z","in","Oil & Gas won toss","24th Match","First-class","Lahore City Cricket Association Ground","Lahore",
+   ["Oil & Gas Development Company Limited","O&G","239/5",1453495,[{runs:239,wickets:5,overs:0,isBatting:true,isCurrent:1}]],["Sui Northern Gas Pipelines Limited","SNGP","",3088])
+];
+
+const S={lang:"en",tz:"IST",theme:"auto",scope:"top",day:null,events:[],snapshot:false,open:new Set(),timer:null,last:"load"};
+try{
+  const g=k=>localStorage.getItem("ckt-"+k);
+  if(T[g("lang")])S.lang=g("lang");
+  if(ZONES[g("tz")])S.tz=g("tz");
+  if(["auto","light","neutral","dark"].includes(g("theme")))S.theme=g("theme");
+  if(["top","all"].includes(g("scope")))S.scope=g("scope");
+}catch(e){}
+const save=(k,v)=>{try{localStorage.setItem("ckt-"+k,v);}catch(e){}};
+const $=id=>document.getElementById(id);
+const t=k=>T[S.lang][k]??T.en[k];
+const loc=()=>LOCALE[S.lang];
+const zone=()=>ZONES[S.tz].tz;
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function applyTheme(){const r=document.documentElement;r.classList.remove("th-light","th-neutral","th-dark");if(S.theme!=="auto")r.classList.add("th-"+S.theme);}
+applyTheme();
+
+const ymdIn=(d,tz)=>new Intl.DateTimeFormat("en-CA",{timeZone:tz,year:"numeric",month:"2-digit",day:"2-digit"}).format(d);
+const shift=(ymd,n)=>{const d=new Date(ymd+"T12:00:00Z");d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10);};
+const hm=(iso,tz)=>new Intl.DateTimeFormat(loc(),{timeZone:tz||zone(),hour:"2-digit",minute:"2-digit",hour12:false}).format(new Date(iso));
+const dateShort=(iso,tz)=>new Intl.DateTimeFormat(loc(),{timeZone:tz||zone(),day:"numeric",month:"short"}).format(new Date(iso));
+
+function comp(e){return e.competitions?.[0]||{};}
+function state(e){return (e.status?.type?.state)||(comp(e).status?.type?.state)||"pre";}
+function summary(e){return e.status?.summary||comp(e).status?.summary||e.status?.type?.detail||"";}
+function fmtOf(e){return comp(e).class?.generalClassCard||"";}
+function isTop(e){
+  const lg=e._league||"";
+  if(NOT_TOP.test(lg))return false;
+  return INTL_FMT.test(fmtOf(e))||MAJOR.test(lg);
+}
+
+async function fetchDay(ymd){
+  const r=await fetch(API+"?dates="+ymd.replace(/-/g,""),{cache:"no-store"});
+  if(!r.ok)throw new Error("HTTP "+r.status);
+  const j=await r.json();const out=[];const seen=new Set();
+  (j.scores||[]).forEach(s=>{const lg=s.leagues?.[0]?.name||"";(s.events||[]).forEach(e=>{if(seen.has(e.id))return;seen.add(e.id);e._league=lg;out.push(e);});});
+  return out;
+}
+const visible=ev=>S.scope==="all"?ev:ev.filter(isTop);
+
+async function load(dir){
+  if(S.snapshot&&dir)return;
+  clearTimeout(S.timer);setStatus("load");
+  let day=S.day||ymdIn(new Date(),zone());
+  try{
+    let ev=await fetchDay(day);
+    // Step past days with nothing to show; on first load look ahead up to two weeks
+    let n=0;const step=dir||1;
+    while(!visible(ev).length&&n<14&&(dir||!S.day)){day=shift(day,step);ev=await fetchDay(day);n++;}
+    S.snapshot=false;S.day=day;S.events=ev;
+  }catch(err){
+    if(!S.events.length||S.snapshot){S.snapshot=true;S.day=SNAP_DATE;S.events=SNAP;}
+    else{setStatus("err");render();return;}
+  }
+  render();
+  const live=S.events.some(e=>state(e)==="in");
+  setStatus(S.snapshot?"snap":live?"live":"ok");
+  if(!S.snapshot)S.timer=setTimeout(()=>load(0),live?30000:180000);
+}
+
+function setStatus(k){
+  S.last=k;const dot=$("dot"),tx=$("stxt");dot.className="dot";
+  const now=hm(new Date().toISOString());
+  if(k==="load")tx.textContent=t("connecting");
+  else if(k==="ok"){dot.classList.add("ok");tx.textContent=`${t("updated")} ${now} ${S.tz}`;}
+  else if(k==="live"){dot.classList.add("live");tx.textContent=`${t("live")} · ${t("updated")} ${now} ${S.tz}`;}
+  else if(k==="snap")tx.textContent=t("preview");
+  else if(k==="err")tx.textContent=t("err");
+}
+
+function flag(team){
+  const ab=esc((team.abbreviation||team.displayName||"").slice(0,4));
+  const src=team.logo||(team.id?`https://a.espncdn.com/i/teamlogos/cricket/500/${team.id}.png`:"");
+  if(S.snapshot||!src)return `<span class="flag" aria-hidden="true">${ab}</span>`;
+  return `<span class="flag" aria-hidden="true"><img alt="" loading="lazy" src="${esc(src)}" onerror="this.parentNode.textContent='${ab}'"></span>`;
+}
+function splitScore(s){const m=String(s||"").match(/^(.*?)\s*(\([^)]*\))?\s*$/);return{runs:(m&&m[1])||"",ov:(m&&m[2])||""};}
+function batting(c){return (c.linescores||[]).some(l=>l.isBatting&&+l.isCurrent===1);}
+
+function sideHTML(c,st,anyWinner){
+  const sc=splitScore(c.score);
+  const lost=st==="post"&&anyWinner&&!c.winner;
+  const scoreHTML=sc.runs?`<span class="runs">${esc(sc.runs)}</span>${sc.ov?`<span class="ov">${esc(sc.ov)}</span>`:""}`:(st==="in"?`<span class="yet">${t("yet")}</span>`:"");
+  return `<div class="side${lost?" lost":""}">${flag(c.team||{})}<span class="tname">${esc(c.team?.displayName||"")}${st==="in"&&batting(c)?`<span class="bat" title="Batting"></span>`:""}</span><span class="score">${scoreHTML}</span></div>`;
+}
+
+function cardHTML(e){
+  const c=comp(e),st=state(e),cs=c.competitors||[];
+  const anyWinner=cs.some(x=>x.winner);
+  const when=st==="in"?`<span class="livetag">${t("live")}</span>`:st==="pre"?`<span class="when">${hm(e.date)} ${S.tz}</span>`:`<span class="when">${dateShort(e.date)}</span>`;
+  const sum=summary(e);
+  const open=S.open.has(e.id);
+  const v=c.venue||{};
+  const link=(e.links||[]).find(l=>/game|match/.test(l.href||""))?.href;
+  const inns=cs.flatMap(x=>(x.linescores||[]).filter(l=>l.isBatting&&(l.runs||l.wickets)).map(l=>`${esc(x.team?.abbreviation||"")} ${l.runs}${+l.wickets<10?"/"+l.wickets:""}${+l.overs?` (${l.overs})`:""}`));
+  const other=S.tz==="IST"?"GMT":"IST";
+  return `<article class="card${st==="in"?" is-live":""}">
+   <button class="cbtn" type="button" data-id="${esc(e.id)}" aria-expanded="${open}">
+    <div class="meta-top"><span>${fmtOf(e)?`<span class="fmt">${esc(fmtOf(e))}</span>`:""}${esc(c.description||"")}</span>${when}</div>
+    ${cs.map(x=>sideHTML(x,st,anyWinner)).join("")}
+    ${sum?`<div class="summary${st==="post"?" res":""}" lang="en">${esc(sum)}</div>`:""}
+   </button>
+   ${open?`<div class="detail">
+     <dl class="dl">
+      <dt>${t("starts")}</dt><dd>${dateShort(e.date)} · ${hm(e.date)} ${S.tz} · ${hm(e.date,ZONES[other].tz)} ${other}</dd>
+      ${v.fullName?`<dt>${t("venue")}</dt><dd>${esc(v.fullName)}${v.address?.city?", "+esc(v.address.city):""}</dd>`:""}
+      ${inns.length?`<dt>${t("inns")}</dt><dd><div class="inns">${inns.map(s=>`<span>${s}</span>`).join("")}</div></dd>`:""}
+     </dl>
+     ${link?`<a href="${esc(link)}" target="_blank" rel="noopener">${t("scorecard")} ↗</a>`:""}
+   </div>`:""}
+  </article>`;
+}
+
+function render(){
+  const R=document.documentElement;R.lang=S.lang;
+  $("tagline").textContent=t("tag");
+  $("langgrp").setAttribute("aria-label",t("lang"));$("tzgrp").setAttribute("aria-label",t("tzl"));$("themegrp").setAttribute("aria-label",t("theme"));
+  document.querySelectorAll("[data-lang]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.lang===S.lang));
+  document.querySelectorAll("[data-tz]").forEach(b=>{b.setAttribute("aria-pressed",b.dataset.tz===S.tz);b.title=ZONES[b.dataset.tz].off;});
+  document.querySelectorAll("[data-theme-opt]").forEach(b=>{const k=b.dataset.themeOpt;b.setAttribute("aria-pressed",k===S.theme);b.setAttribute("aria-label",t(k));b.title=t(k);});
+  document.querySelectorAll("[data-scope]").forEach(b=>{b.textContent=t(b.dataset.scope);b.setAttribute("aria-pressed",b.dataset.scope===S.scope);});
+  $("refresh").textContent=t("refresh");
+  $("prev").setAttribute("aria-label",t("prev"));$("next").setAttribute("aria-label",t("next"));
+  $("prev").disabled=$("next").disabled=S.snapshot;
+  $("foot").textContent=t("foot");
+  const note=$("note");note.hidden=!S.snapshot;note.textContent=t("snap");
+
+  const ev=visible(S.events);
+  if(S.day){
+    const d=new Date(S.day+"T12:00:00Z");
+    const isToday=S.day===ymdIn(new Date(),zone());
+    $("dayname").textContent=(isToday?t("today")+" · ":"")+new Intl.DateTimeFormat(loc(),{weekday:"long",day:"numeric",month:"long",timeZone:"UTC"}).format(d);
+    $("daysub").textContent=`${ev.length} ${ev.length===1?t("match1"):t("matchN")} · ${t("inTz")} ${S.tz} (${ZONES[S.tz].off})`;
+  }
+  const box=$("matches");
+  if(!S.day){box.innerHTML=`<div class="empty">${t("connecting")}</div>`;return;}
+  if(!ev.length){
+    box.innerHTML=`<div class="empty"><span>${S.scope==="top"?t("nomatchTop"):t("nomatchAll")}</span>${S.scope==="top"&&S.events.length?`<button class="btn" type="button" id="showall">${t("showAll")}</button>`:""}</div>`;
+    const sa=$("showall");if(sa)sa.onclick=()=>setScope("all");
+    return;
+  }
+  // Group by competition; live groups first, then by earliest start
+  const rank=e=>({in:0,pre:1,post:2}[state(e)]??1);
+  const groups={};ev.forEach(e=>{(groups[e._league||"—"]=groups[e._league||"—"]||[]).push(e);});
+  const keys=Object.keys(groups).sort((a,b)=>{
+    const A=groups[a],B=groups[b];
+    const ra=Math.min(...A.map(rank)),rb=Math.min(...B.map(rank));
+    if(ra!==rb)return ra-rb;
+    const ta=isTop(A[0])?0:1,tb=isTop(B[0])?0:1;if(ta!==tb)return ta-tb;
+    return Math.min(...A.map(e=>+new Date(e.date)))-Math.min(...B.map(e=>+new Date(e.date)));
+  });
+  box.innerHTML=keys.map(k=>{
+    const list=groups[k].sort((x,y)=>rank(x)-rank(y)||new Date(x.date)-new Date(y.date));
+    return `<section><div class="comp-h"><h2 lang="en">${esc(k)}</h2></div><div class="list">${list.map(cardHTML).join("")}</div></section>`;
+  }).join("");
+}
+
+function setScope(v){S.scope=v;save("scope",v);if(S.snapshot)render();else{S.day=S.day;load(0);}}
+
+document.addEventListener("click",ev=>{
+  const b=ev.target.closest("button");if(!b)return;
+  if(b.dataset.lang){S.lang=b.dataset.lang;save("lang",S.lang);render();setStatus(S.last);}
+  else if(b.dataset.tz){const changed=b.dataset.tz!==S.tz;S.tz=b.dataset.tz;save("tz",S.tz);render();setStatus(S.last);if(changed&&!S.snapshot){S.day=null;load(0);}}
+  else if(b.dataset.themeOpt){S.theme=b.dataset.themeOpt;save("theme",S.theme);applyTheme();render();}
+  else if(b.dataset.scope){if(b.dataset.scope!==S.scope)setScope(b.dataset.scope);}
+  else if(b.classList.contains("cbtn")){const id=b.dataset.id;S.open.has(id)?S.open.delete(id):S.open.add(id);render();}
+});
+$("refresh").onclick=()=>load(0);
+$("prev").onclick=()=>{S.day=shift(S.day,-1);S.open.clear();load(-1);};
+$("next").onclick=()=>{S.day=shift(S.day,1);S.open.clear();load(1);};
+
+render();load(0);
+})();
+</script>
+</body>
+</html>
