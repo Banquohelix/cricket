@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Cricket Scores</title>
+<title>ScoreVarta</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="Live cricket scores and fixtures for international cricket and the major T20 leagues, in GMT or IST, in English, Hindi, Bengali and Marathi.">
+<meta name="description" content="ScoreVarta: live cricket scores and fixtures for international cricket and the major T20 leagues, in GMT or IST, in English, Hindi, Bengali and Marathi.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Teko:wght@500;600&family=Hind:wght@400;500;600&family=Hind+Siliguri:wght@400;500;600&display=swap">
 <style>
@@ -43,6 +43,7 @@ button,select{font:inherit;color:inherit}
 .mast{background:var(--surface);border-bottom:1px solid var(--line)}
 .mast .gut{padding-block:16px 14px;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 20px}
 .brand h1{margin:0;font-family:var(--f-display);font-weight:600;font-size:clamp(2.4rem,8vw,3.2rem);line-height:.8;letter-spacing:.01em;text-transform:uppercase}
+.brand h1 span{color:var(--seam)}
 .brand p{margin:6px 0 0;color:var(--muted);font-size:.86rem}
 .seam{height:9px;background:
   repeating-linear-gradient(90deg,var(--seam) 0 7px,transparent 7px 12px) 0 0/100% 2px no-repeat,
@@ -118,7 +119,7 @@ footer{margin-top:32px;font-size:.76rem;color:var(--muted)}
 <header class="mast">
   <div class="gut">
     <div class="brand">
-      <h1 id="sitename">Cricket</h1>
+      <h1 id="sitename">Score<span>Varta</span></h1>
       <p id="tagline"></p>
     </div>
     <div class="controls">
